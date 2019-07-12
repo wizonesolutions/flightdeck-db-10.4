@@ -156,7 +156,7 @@
         state: "{{ mysql_allow_remote_root | ternary('present', 'absent') }}"
         priv: "*.*:ALL"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
-        config_file: "{{ _conf_file_path }}"
+        config_file: "{{ _conf_file_path | default(omit) }}"
       when:
         - (mysql_root_password != '') or (mysql_root_password_file is defined)
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
