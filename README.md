@@ -30,7 +30,7 @@ mysql_query_cache_size: "0"
 ```
 
 Where:
-* **mysql_root_password** is the MySQL root password to use. Required.
+* **mysql_root_password** is the MySQL root password to use. Required unless `mysql_root_password_file` is defined.
 * **mysql_key_buffer_size** is the key buffer size to use. Optional, defaults to `256M`
 * **mysql_max_allowed_packet** is the maximum allowed packet size. Optional, defaults to `64M`.
 * **mysql_table_open_cache** is the table open cache count. Optional, defaults to `256`.
@@ -75,8 +75,29 @@ Each item has the following variables:
 * **name** is the username to create. Required.
 * **state** is if the user is `present` or `absent`. Specify `absent` to delete existing users. Optional, defaults to `present`.
 * **host** is the host from which the user may use their account. While optional, it is best practice to set this in nearly all cases.
-* **password** is the user's password. Optional, but highly recommended.
+* **password** is the user's password. Optional. Ignored if `passwordFile` is defined.
 * **priv** is a list of database privileges in the form of `database.table:privilege`. Multiple privileges can be specified with a comma (`,`), multiple databases are separated with a `/`. Optional, but highly recommended.
+
+### Using separate files for credentials
+
+Sometimes, you may wish to keep certain credentials in separate files from the rest of the configuration. One such case is if you want to keep `flight-deck-db.yml` in a Kubernetes configmap, but keep the database passwords in secrets instead.
+
+```yaml
+mysql_root_password_file: /secrets/mysql_root_password.txt
+mysql_users:
+  - name: "drupal"
+    state: present
+    host: "%"
+    passwordFile: "/secrets/drupal_db_password.txt"
+    priv: "drupal.*:ALL"
+```
+
+Where:
+
+* **mysql_root_password_file** is the full path to a file containing the password for the `root` account.
+* **passwordFile** is the full path to a file containing the user's password.
+
+All paths are to the file *inside* the container.
 
 ## Deployment on Kubernetes
 
