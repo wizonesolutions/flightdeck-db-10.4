@@ -5,5 +5,9 @@ SCRIPT_NAME=`basename "$0"`
 
 if [ ! -f "/var/run/mysqld/mysqld.sock" ]; then
   echo "$SCRIPT_NAME: Stopping MySQL in the background."
-  mysqladmin -u root -S /var/run/mysqld/mysqld.sock shutdown
+
+  # We could stop this using mysqladmin shutdown, but this can requires
+  # permissions and .my.cnf set up. Sending SIGTERM to the mysqld process
+  # is also an accepted shutdown process and only requires same-user OS auth.
+  pkill -15 mysqld
 fi
