@@ -12,6 +12,7 @@ flightdeck_users:
 flightdeck_root_prompt: '\u@flight-deck-db:\w# '
 flightdeck_user_prompt: '\u@flight-deck-db:\w$ '
 
+# @todo Remove `/secrets` statement when all clusters have be updated.
 flightdeck_run_commands: |
   if [ -f "/secrets/flight-deck-db.yml" ]; then
     ansible-playbook -i /ansible/inventories/all.ini -e "@/secrets/flight-deck-db.yml" /ansible/run.yml

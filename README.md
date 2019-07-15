@@ -83,12 +83,12 @@ Each item has the following variables:
 Sometimes, you may wish to keep certain credentials in separate files from the rest of the configuration. One such case is if you want to keep `flight-deck-db.yml` in a Kubernetes configmap, but keep the database passwords in secrets instead.
 
 ```yaml
-mysql_root_password_file: /secrets/mysql_root_password.txt
+mysql_root_password_file: /config/mysql-root-user/password.txt
 mysql_users:
   - name: "drupal"
     state: present
     host: "%"
-    passwordFile: "/secrets/drupal_db_password.txt"
+    passwordFile: "/config/mysql-drupal-user/password.txt"
     priv: "drupal.*:ALL"
 ```
 
@@ -129,7 +129,7 @@ flightdeck_cluster:
     size: "10Gi"
     secrets:
       - name: "flight-deck-db"
-        path: "/secrets"
+        path: "/config/mysql"
 ```
 
 ## Using with Docker Compose
@@ -146,7 +146,7 @@ services:
     volumes:
       - /var/lib/mysql
       - ./db-backups:/tmp/db-backups:cached
-      - ./flight-deck-db.yml:/secrets/flight-deck-db.yml
+      - ./flight-deck-db.yml:/config/mysql/flight-deck-db.yml
 ```
 
 ## Part of Flight Deck
