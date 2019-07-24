@@ -116,23 +116,24 @@
         config_file: "{{ _conf_file_path | default(omit) }}"
       with_items: "{{ mysql_databases + _additional_dbs }}"
 
+    - name: Get the root password.
+      set_fact:
+        _root_password: "\
+          {% if mysql_root_password_file is defined %}\
+          {{ lookup('file', mysql_root_password_file, errors='strict') }}\
+          {% else %}\
+          {{ mysql_root_password }}\
+          {% endif %}"
+      no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
+
     - name: Update the root password.
       mysql_user:
         name: "root"
         host: "localhost"
-        password: "\
-          {% if mysql_root_password_file is defined %}\
-          {{ lookup('file', mysql_root_password_file, errors='strict') }}\
-          {% else %}\
-          {{ mysql_root_password | default(_random_pw, true) }}\
-          {% endif %}"
+        password: "{{ _root_password }}"
         login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
-      vars:
-        _random_pw: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
-      when:
-        - mysql_root_password != '' or mysql_use_random_root_password == true
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
 
     # Create the .my.cnf file in the volume, *and* the home directory.
@@ -143,12 +144,10 @@
         content: |
           [client]
           user=root
-          password={{ mysql_root_password }}
+          password={{ _root_password }}
         owner: "mysql"
         group: "mysql"
         mode: "u=rw,g=rw,o="
-      when:
-        - mysql_root_password != ''
       loop:
         - "/home/mysql/.my.cnf"
         - "/var/lib/mysql/.my.cnf"
@@ -158,18 +157,11 @@
       mysql_user:
         name: "root"
         host: "%"
-        password: "\
-          {% if mysql_root_password_file is defined %}\
-          {{ lookup('file', mysql_root_password_file, errors='strict') }}\
-          {% else %}\
-          {{ mysql_root_password }}\
-          {% endif %}"
+        password: "{{ _root_password }}"
         state: "{{ mysql_allow_remote_root | ternary('present', 'absent') }}"
         priv: "*.*:ALL"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
-      when:
-        - (mysql_root_password != '') or (mysql_root_password_file is defined)
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
 
   handlers:
@@ -177,7 +169,7 @@
       shell: >
         mysqladmin
         -u root
-        {% if mysql_root_password != '' %}--password="{{ mysql_root_password }}"{% endif %}
+        --password="{{ _root_password }}"
         -S /var/run/mysqld/mysqld.sock shutdown
         -w
         --shutdown-timeout=30

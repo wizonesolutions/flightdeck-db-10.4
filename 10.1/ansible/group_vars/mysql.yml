@@ -23,7 +23,6 @@ flightdeck_run_commands: |
   fi
 
 mysql_root_password: "{{ lookup('env', 'MYSQL_ROOT_PASSWORD') | default('', true) }}"
-mysql_use_random_root_password: "{{ lookup('env', 'MYSQL_RANDOM_ROOT_PASSWORD') | bool | default(false, true) }}"
 mysql_allow_remote_root: "{{ lookup('env', 'MYSQL_ALLOW_REMOTE_ROOT') | default(false, true) | bool }}"
 mysql_databases:
   - name: "{{ lookup('env', 'MYSQL_DATABASE') | default('drupal', true) }}"
