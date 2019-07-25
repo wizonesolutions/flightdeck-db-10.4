@@ -126,10 +126,10 @@
           {% endif %}"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
 
-    - name: Update the root password.
+    - name: Update the root password for all hosts.
       mysql_user:
         name: "root"
-        host: "localhost"
+        host_all: yes
         password: "{{ _root_password }}"
         login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
@@ -163,6 +163,17 @@
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
+
+    # Running this after deletes any anon users, created intentionally or not.
+    - name: Drop anonymous users.
+      mysql_user:
+        name: ""
+        host_all: yes
+        state: absent
+        login_user: "root"
+        login_password: "{{ _root_password }}"
+        login_unix_socket: "/var/run/mysqld/mysqld.sock"
+        config_file: "/var/lib/mysql/.my.cnf"
 
   handlers:
     - name: stop background mysql
