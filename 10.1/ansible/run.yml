@@ -143,8 +143,8 @@
         dest: "{{ item }}"
         content: |
           [client]
-          user=root
-          password={{ _root_password }}
+          user = "root"
+          password = "{{ _root_password }}"
         owner: "mysql"
         group: "mysql"
         mode: "u=rw,g=rw,o="
