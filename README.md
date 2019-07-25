@@ -155,7 +155,6 @@ This container is part of the [Flight Deck library](https://github.com/ten7/flig
 
 Flight Deck is used and supported by [TEN7](https://ten7.com/).
 
-
 ## Debugging
 
 If you need to get verbose output from the entrypoint, set `flightdeck_debug` to `true` or `yes` in the config file.
@@ -168,6 +167,50 @@ flightdeck_debug: yes
 This container uses [Ansible](https://www.ansible.com/) to perform start-up tasks. To get even more verbose output from the start up scripts, set the `ANSIBLE_VERBOSITY` environment variable to `4`.
 
 If the container will not start due to a failure of the entrypoint, set the `FLIGHTDECK_SKIP_ENTRYPOINT` environment variable to `true` or `1`, then restart the container.
+
+### Skipping authorization
+
+If you've been locked out of the database due to a permissions problem, you can override the default database startup command to start without authentication and networking.
+
+In Kubernetes:
+
+Edit the database Deployment or StatefulSet to override the `flight-deck-db` container's default `command`. Optionally, add an `env` section to set debug flags as described above.
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  template:
+    spec:
+      containers:
+      - image: ten7/flight-deck-db:develop
+        command:
+          - mysqld_safe
+          - --skip-grant-tables
+          - --skip-networking
+        env:
+          - name: FLIGHTDECK_SKIP_ENTRYPOINT
+            value: "1"
+          - name: ANSIBLE_VERBOSITY
+            value: "4"
+```
+
+In Docker Compose:
+
+Edit your `docker-compose.yml` file to override the `command` the `flight-deck-db` container. Optionally, add an `environment` section to set debug flags as described above.
+
+```yaml
+version: '3'
+services:
+  db:
+    image: ten7/flight-deck-db:10
+    command: ["mysqld_safe", "--skip-grant-tables", "--skip-networking"]
+    environment:
+      FLIGHTDECK_SKIP_ENTRYPOINT: 1
+      ANSIBLE_VERBOSITY: 4
+```
 
 ## License
 
