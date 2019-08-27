@@ -180,7 +180,8 @@
       shell: >
         mysqladmin
         -u root
-        --password="{{ _root_password }}"
+        --password="{{ _root_password | replace('"', '\"') }}"
         -S /var/run/mysqld/mysqld.sock shutdown
         -w
         --shutdown-timeout=30
+      no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
