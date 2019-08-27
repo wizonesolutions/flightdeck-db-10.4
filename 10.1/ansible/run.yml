@@ -180,7 +180,7 @@
       shell: >
         mysqladmin
         -u root
-        --password="{{ _root_password | replace('"', '\"') }}"
+        --password={{ _root_password | quote }}
         -S /var/run/mysqld/mysqld.sock shutdown
         -w
         --shutdown-timeout=30
