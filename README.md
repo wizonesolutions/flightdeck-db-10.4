@@ -14,7 +14,7 @@ There are several tags available for this container, each with different Solr an
 
 | mariaDB version | MySQL equiv. | Tags |
 | --------------- | ------------ | ---- |
-| 10.1 | 5.8 | 10, latest |
+| 10.3 | 5.7 | 10, 10.3, latest |
 
 ## Configuration
 
