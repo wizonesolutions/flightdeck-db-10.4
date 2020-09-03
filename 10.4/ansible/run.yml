@@ -7,7 +7,10 @@
       register: _mysql_data_dir
     - name: Run MySQL initialization script
       shell: >
-        mysql_install_db --user=mysql --datadir=/var/lib/mysql
+        mysql_install_db
+        --user=mysql
+        --datadir=/var/lib/mysql
+        --skip-test-db
       when:
         - _mysql_data_dir.stat.exists == false
 
@@ -62,16 +65,6 @@
       when:
         - _mycnf.stat.exists
 
-    - name: Drop the test database
-      mysql_db:
-        name: "test"
-        state: absent
-        login_user: "root"
-        login_unix_socket: "/var/run/mysqld/mysqld.sock"
-        config_file: "{{ _conf_file_path | default(omit) }}"
-      when:
-        - _mysql_data_dir.stat.exists == false
-
     - name: Ensure MySQL users are present.
       mysql_user:
         name: "{{ item.name }}"
@@ -86,7 +79,7 @@
         state: "{{ item.state | default('present') }}"
         append_privs: "{{ item.append_privs | default('no') }}"
         encrypted: "{{ item.encrypted | default('no') }}"
-        login_user: "root"
+        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       with_items: "{{ mysql_users }}"
@@ -111,7 +104,7 @@
         collation: "{{ item.collation | default('utf8_general_ci') }}"
         encoding: "{{ item.encoding | default('utf8') }}"
         state: "{{ item.state | default('present') }}"
-        login_user: "root"
+        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       with_items: "{{ mysql_databases + _additional_dbs }}"
@@ -131,7 +124,7 @@
         name: "root"
         host_all: yes
         password: "{{ _root_password }}"
-        login_user: "root"
+        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
@@ -160,6 +153,7 @@
         password: "{{ _root_password }}"
         state: "{{ mysql_allow_remote_root | ternary('present', 'absent') }}"
         priv: "*.*:ALL"
+        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
@@ -170,8 +164,7 @@
         name: ""
         host_all: yes
         state: absent
-        login_user: "root"
-        login_password: "{{ _root_password }}"
+        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
 
@@ -179,8 +172,7 @@
     - name: stop background mysql
       shell: >
         mysqladmin
-        -u root
-        --password={{ _root_password | quote }}
+        -u mysql
         -S /var/run/mysqld/mysqld.sock shutdown
         -w
         --shutdown-timeout=30
