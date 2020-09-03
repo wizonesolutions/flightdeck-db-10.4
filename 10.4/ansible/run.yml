@@ -5,12 +5,16 @@
       stat:
         path: "/var/lib/mysql/mysql"
       register: _mysql_data_dir
+
+    # We force the root user auth method to "normal" as older versions of
+    # mariadb relied on it, and it causes issues for our init script.
     - name: Run MySQL initialization script
       shell: >
         mysql_install_db
         --user=mysql
         --datadir=/var/lib/mysql
         --skip-test-db
+        --auth-root-authentication-method=normal
       when:
         - _mysql_data_dir.stat.exists == false
 
@@ -79,7 +83,7 @@
         state: "{{ item.state | default('present') }}"
         append_privs: "{{ item.append_privs | default('no') }}"
         encrypted: "{{ item.encrypted | default('no') }}"
-        login_user: "mysql"
+        login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       with_items: "{{ mysql_users }}"
@@ -104,7 +108,7 @@
         collation: "{{ item.collation | default('utf8_general_ci') }}"
         encoding: "{{ item.encoding | default('utf8') }}"
         state: "{{ item.state | default('present') }}"
-        login_user: "mysql"
+        login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       with_items: "{{ mysql_databases + _additional_dbs }}"
@@ -124,7 +128,7 @@
         name: "root"
         host_all: yes
         password: "{{ _root_password }}"
-        login_user: "mysql"
+        login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
@@ -153,7 +157,6 @@
         password: "{{ _root_password }}"
         state: "{{ mysql_allow_remote_root | ternary('present', 'absent') }}"
         priv: "*.*:ALL"
-        login_user: "mysql"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
@@ -164,7 +167,8 @@
         name: ""
         host_all: yes
         state: absent
-        login_user: "mysql"
+        login_user: "root"
+        login_password: "{{ _root_password }}"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "/var/lib/mysql/.my.cnf"
 
@@ -172,7 +176,8 @@
     - name: stop background mysql
       shell: >
         mysqladmin
-        -u mysql
+        -u root
+        --password={{ _root_password | quote }}
         -S /var/run/mysqld/mysqld.sock shutdown
         -w
         --shutdown-timeout=30
