@@ -89,19 +89,6 @@
       with_items: "{{ mysql_users }}"
       no_log: "{{ flightdeck_debug | default(false) | ternary(false, true) }}"
 
-    - name: Generate a list of additional databases to create.
-      set_fact:
-        db:
-          name: "{{ item }}"
-          encoding: "latin1"
-          collation: "latin1_general_ci"
-      loop: "{{ lookup('env', 'ADDITIONAL_DATABASES').split() | list | unique }}"
-      register: _additional_dbs_raw
-
-    - name: Normalize the additional dbs into a list.
-      set_fact:
-        _additional_dbs: "{{ _additional_dbs_raw.results | map(attribute='ansible_facts.db') | list | default([]) }}"
-
     - name: Ensure MySQL databases are present.
       mysql_db:
         name: "{{ item.name }}"
@@ -111,7 +98,7 @@
         login_user: "root"
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
         config_file: "{{ _conf_file_path | default(omit) }}"
-      with_items: "{{ mysql_databases + _additional_dbs }}"
+      with_items: "{{ mysql_databases }}"
 
     - name: Get the root password.
       set_fact:

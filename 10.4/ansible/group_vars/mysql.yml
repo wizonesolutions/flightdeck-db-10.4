@@ -1,5 +1,5 @@
 ---
-flighdeck_motd_name: DB 10.1
+flighdeck_motd_name: DB 10.4
 
 flightdeck_groups:
   - name: "mysql"
