@@ -3,13 +3,17 @@
   roles:
     - ten7.flightdeck_base
   tasks:
-    - name: Install MySQL.
+    - name: Install needed software.
       apk:
         name: "{{ item }}"
         state: present
         update_cache: yes
       loop:
+        - "py3-boto3"
+        - "py3-botocore"
+        - "py3-chardet"
         - "py3-mysqlclient"
+        - "py3-urllib3"
         - "mariadb"
         - "mariadb-client"
       notify:

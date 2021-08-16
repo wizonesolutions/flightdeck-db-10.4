@@ -9,15 +9,29 @@ flightdeck_users:
     group: "mysql"
     home: "/home/mysql"
 
-flightdeck_root_prompt: '\u@flight-deck-db:\w# '
-flightdeck_user_prompt: '\u@flight-deck-db:\w$ '
+flightdeck_root_prompt: '\u@flightdeck-db:\w# '
+flightdeck_user_prompt: '\u@flightdeck-db:\w$ '
+
+flightdeck_motd_links:
+  - name: 'Code & docs'
+    url: 'https://github.com/ten7/flightdeck-db-10.4'
+  - name: ' Learn more'
+    url: 'https://flightdeck.ten7.com/'
 
 # @todo Remove `/secrets` statement when all clusters have be updated.
 flightdeck_run_commands: |
-  if [ -f "/secrets/flight-deck-db.yml" ]; then
-    ansible-playbook -i /ansible/inventories/all.ini -e "@/secrets/flight-deck-db.yml" /ansible/run.yml
+  if [ -n "${FLIGHTDECK_CONFIG}" ]; then
+    config_file=$(mktemp "${TMPDIR:-/tmp/}$(basename $0).XXXXXXXXXXXX")
+    echo "$FLIGHTDECK_CONFIG" | base64 -d > $config_file
+    ansible-playbook -i /ansible/inventories/all.ini -e "@${config_file}" /ansible/run.yml
+  elif [ -f "${FLIGHTDECK_CONFIG_FILE}" ]; then
+    ansible-playbook -i /ansible/inventories/all.ini -e "@${FLIGHTDECK_CONFIG_FILE}" /ansible/run.yml
+  elif [ -f "/config/mysql/flightdeck-db.yml" ]; then
+    ansible-playbook -i /ansible/inventories/all.ini -e "@/config/mysql/flightdeck-db.yml" /ansible/run.yml
   elif [ -f "/config/mysql/flight-deck-db.yml" ]; then
     ansible-playbook -i /ansible/inventories/all.ini -e "@/config/mysql/flight-deck-db.yml" /ansible/run.yml
+  elif [ -f "/secrets/flight-deck-db.yml" ]; then
+    ansible-playbook -i /ansible/inventories/all.ini -e "@/secrets/flight-deck-db.yml" /ansible/run.yml
   else
     ansible-playbook -i /ansible/inventories/all.ini /ansible/run.yml
   fi

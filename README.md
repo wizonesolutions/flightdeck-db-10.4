@@ -10,15 +10,26 @@ Features:
 
 ## Tags and versions
 
-There are several tags available for this container, each with different Solr and module support:
+There are several tags available for this container:
 
-| mariaDB version | MySQL equiv. | Tags |
-| --------------- | ------------ | ---- |
-| 10.3 | 5.7 | 10, 10.3, latest |
+| Tags | mariaDB version | MySQL equiv. |
+| ---- | --------------- | ------------ |
+| latest | 10.3 | 5.7 |
+| x.y.z | 10.3 | 5.7 |
 
 ## Configuration
 
-This container does not use environment variables for configuration. Instead, the `flight-deck-db.yml` file is used to handle all configuration.
+Instead of a large number of environment variables, this container relies on a file to perform all runtime configuration, `flightdeck-db.yml`.
+
+You can provide this file in one of three ways to the container:
+
+* Mount the configuration file at path `/config/web/flightdeck-db.yml` inside the container using a bind mount, configmap, or secret.
+* Mount the config file anywhere in the container, and set the `FLIGHTDECK_CONFIG_FILE` environment variable to the path of the file.
+* Encode the contents of `flightdeck-varnish.yml` as base64 and assign the result to the `FLIGHTDECK_CONFIG` environment variable.
+
+### Basic settings
+
+You can set the root password, as well as key buffer and cache sizes using the following variables:
 
 ```yaml
 ---
@@ -214,4 +225,4 @@ services:
 
 ## License
 
-Flight Deck is licensed under GPLv3. See [LICENSE](https://raw.githubusercontent.com/ten7/flight-deck/master/LICENSE) for the complete language.
+Flight Deck is licensed under GPLv3. See [LICENSE](https://raw.githubusercontent.com/ten7/flightdeck-db-10.3/master/LICENSE) for the complete language.
