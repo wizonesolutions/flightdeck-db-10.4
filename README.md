@@ -35,6 +35,7 @@ Where:
 * **mysql_max_allowed_packet** is the maximum allowed packet size. Optional, defaults to `64M`.
 * **mysql_table_open_cache** is the table open cache count. Optional, defaults to `256`.
 * **mysql_query_cache_size** is the query cache size to retain. Optional, defaults to `0` as the query cache can be counterproductive for Drupal sites.
+* **mysql_log_error** is where to log errors. Optional, defaults to `/dev/stdout`, suitable for running in a container.
 
 ### Defining databases
 
@@ -125,6 +126,7 @@ flightdeck_cluster:
             mysql_max_allowed_packet: "64M"
             mysql_table_open_cache: "256"
             mysql_query_cache_size: "0"
+            mysql_log_error: "/dev/stdout"
   mysql:
     size: "10Gi"
     secrets:
